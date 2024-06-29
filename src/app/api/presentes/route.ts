@@ -21,7 +21,7 @@ import { NextRequest, NextResponse } from "next/server";
 export async function GET(req: NextRequest) {
   // Pagination
   const url = new URL(req.url);
-  const pageSize = Number(url.searchParams.get("pageSize")) || 1;
+  const pageSize = Number(url.searchParams.get("pageSize")) || 10;
   const nextPageToken = url.searchParams.get("nextPageToken");
   const previousPageToken = url.searchParams.get("previousPageToken");
 

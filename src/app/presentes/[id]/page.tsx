@@ -27,13 +27,13 @@ export default function GiftItem({ params }: { params: { id: string } }) {
         >
           <Skeleton className="w-full h-[400px] bg-zinc-300" />
 
-          <div className="flex xl:h-[500px] max-w-[600px] flex-col items-center justify-between w-full gap-5">
+          <div className="flex max-w-[600px] flex-col items-center w-full gap-5">
             <header className="flex justify-between items-center w-full px-2">
               <Skeleton className="h-8 w-2/3 bg-zinc-200" />
               <Skeleton className="h-8 w-1/4 bg-zinc-200" />
             </header>
 
-            <div className="bg-zinc-300 rounded-xl p-5 w-full h-full shadow-sm">
+            <div className="bg-zinc-300 rounded-xl p-5 w-full shadow-sm">
               <Skeleton className="h-24 w-full bg-zinc-200" />
             </div>
           </div>
@@ -53,7 +53,7 @@ export default function GiftItem({ params }: { params: { id: string } }) {
       >
         <Carousel images={data.images} />
 
-        <div className="flex xl:h-[500px] max-w-[600px] flex-col items-center justify-between w-full gap-5">
+        <div className="flex max-w-[600px] flex-col items-center w-full gap-5">
           <header className="flex justify-between items-center w-full px-2">
             <h1 className="text-2xl font-bold text-zinc-700">{data.name}</h1>
             <Badge
@@ -62,13 +62,13 @@ export default function GiftItem({ params }: { params: { id: string } }) {
             />
           </header>
           {data.status === "Indisponível" && (
-            <div className="bg-zinc-300 rounded-xl p-5 w-full h-full shadow-sm">
+            <div className="bg-zinc-300 rounded-xl p-5 w-full shadow-sm">
               <span className="text-md text-zinc-900 font-semibold">
                 🎁 Muito Obrigado, {data.giftedBy}
               </span>
             </div>
           )}
-          <div className="bg-zinc-300 rounded-xl p-5 w-full h-full shadow-sm">
+          <div className="bg-zinc-300 rounded-xl p-5 w-full shadow-sm">
             <p className="text-black text-sm font-bold text-justify">
               {data.description}
             </p>
