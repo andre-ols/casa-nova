@@ -64,7 +64,7 @@ export default function CreateItem() {
       formData.append("images", image);
     });
 
-    const gift: Omit<GiftItem, "id"> = {
+    const gift: Omit<GiftItem, "id" | "frontImage" | "images"> = {
       name: data.name,
       description: data.description,
       category: data.category,
@@ -74,7 +74,7 @@ export default function CreateItem() {
     };
 
     Object.entries(gift).forEach(([key, value]) => {
-      formData.append(key, value);
+      formData.append(key, value as any);
     });
     fetch("/api/presentes", {
       method: "POST",
@@ -171,7 +171,7 @@ export default function CreateItem() {
         )}
         {frontImagePreview && (
           <Image
-            src={frontImagePreview}
+            src={frontImagePreview as any}
             width={96}
             height={96}
             alt="Front Image Preview"
@@ -192,7 +192,7 @@ export default function CreateItem() {
           {imagesPreview.map((image, index) => (
             <Image
               key={index}
-              src={image}
+              src={image as any}
               width={96}
               height={96}
               alt={`Image ${index + 1}`}

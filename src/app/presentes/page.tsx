@@ -6,7 +6,14 @@ import {
 import { Suspense } from "react";
 import { ListGifts } from "./ListGifts";
 
-export default async function ListGiftsPage({ searchParams }) {
+export default async function ListGiftsPage({
+  searchParams,
+}: {
+  searchParams: {
+    previousPageToken: string;
+    nextPageToken: string;
+  };
+}) {
   const previousPageToken = searchParams.previousPageToken || "";
   const nextPageToken = searchParams.nextPageToken || "";
 
