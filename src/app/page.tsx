@@ -13,6 +13,7 @@ const Home: FC = () => {
           <span className="text-2xl text-cyan-500">André e Letícia</span>
         </h2>
       </section>
+
       <Image
         src={salvadorImage}
         alt="Imagem de Salvador"

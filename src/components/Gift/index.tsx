@@ -9,60 +9,69 @@ import {
   ModalHeader,
   useDisclosure,
 } from "@nextui-org/react";
-import { FC, useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { FC } from "react";
 import { useToast } from "../ui/use-toast";
+
+const useMutationSendGift = () => {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: sendGift,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["gifts"],
+      });
+
+      queryClient.prefetchQuery({
+        queryKey: ["gifts"],
+        queryFn: async () => {
+          const response = await fetch(`/api/presentes`);
+          const data = await response.json();
+          return data;
+        },
+      });
+
+      const giftedBy = document.getElementById("giftedBy") as HTMLInputElement;
+      toast({
+        title: `Muito obrigado, ${giftedBy.value}!`,
+        description: "O presente foi marcado com seu nome.",
+        className: "bg-success-500",
+      });
+    },
+
+    onError: () => {
+      toast({
+        title: "Erro ao selecionar presente",
+        description: "Por favor, tente novamente mais tarde.",
+        className: "bg-yellow-500",
+      });
+    },
+  });
+};
+
+const sendGift = async (id: string) => {
+  const giftedBy = document.getElementById("giftedBy") as HTMLInputElement;
+
+  const response = await fetch(`/api/presentes/${id}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      id,
+      giftedBy: giftedBy.value,
+    }),
+  });
+};
 
 export const Gift: FC<{
   id: string;
 }> = ({ id }) => {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
-  const [isLoading, setIsLoading] = useState(false);
-
-  const { toast } = useToast();
-
-  const sendGift = async () => {
-    // send gift
-
-    setIsLoading(true);
-    try {
-      const giftedBy = document.getElementById("giftedBy") as HTMLInputElement;
-
-      const response = await fetch(`/api/presentes/${id}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          id,
-          giftedBy: giftedBy.value,
-        }),
-      });
-
-      if (response.ok) {
-        toast({
-          title: `Muito obrigado, ${giftedBy.value}!`,
-          description: "O presente foi marcado com seu nome.",
-          className: "bg-success-500",
-        });
-      } else {
-        toast({
-          title: "Erro ao selecionar presente",
-          description: "Por favor, tente novamente mais tarde.",
-          className: "bg-yellow-500",
-        });
-      }
-    } catch (error) {
-      console.error("Failed to send gift", error);
-      toast({
-        title: "Erro ao selecionar presente",
-        description: "Por favor, tente novamente mais tarde.",
-        className: "bg-yellow-500",
-      });
-    }
-
-    setIsLoading(false);
-  };
+  const { mutateAsync, isPending } = useMutationSendGift();
 
   return (
     <>
@@ -101,10 +110,10 @@ export const Gift: FC<{
                 <Button
                   color="success"
                   onPress={async () => {
-                    await sendGift();
+                    await mutateAsync(id);
                     onClose();
                   }}
-                  isLoading={isLoading}
+                  isLoading={isPending}
                 >
                   Presentear
                 </Button>

@@ -1,39 +1,48 @@
-"use client";
-import { CardItem } from "@/components/CardItem";
-import { GiftItem } from "@/types/GiftItem";
-import { useQuery } from "@tanstack/react-query";
+import {
+  HydrationBoundary,
+  QueryClient,
+  dehydrate,
+} from "@tanstack/react-query";
+import { Suspense } from "react";
+import { ListGifts } from "./ListGifts";
 
-const useQueryGifts = () => {
-  return useQuery({
-    queryKey: ["gifts"],
+export default async function ListGiftsPage({ searchParams }) {
+  const previousPageToken = searchParams.previousPageToken || "";
+  const nextPageToken = searchParams.nextPageToken || "";
+
+  const queryClient = new QueryClient();
+
+  console.log(process.env["BACKEND_URL"]);
+
+  await queryClient.prefetchQuery({
+    queryKey: [
+      "gifts",
+      {
+        nextPageToken: nextPageToken ? nextPageToken : undefined,
+        previousPageToken: previousPageToken ? previousPageToken : undefined,
+      },
+    ],
     queryFn: async () => {
-      const response = await fetch(`http://localhost:3000/api/presentes`);
-      const data = await response.json();
-      return data as GiftItem[];
+      try {
+        const response = await fetch(
+          `${process.env["BACKEND_URL"]}/api/presentes?nextPageToken=${nextPageToken}&previousPageToken=${previousPageToken}`
+        );
+        const data = await response.json();
+        return data;
+      } catch (error) {
+        console.log("error:", error);
+        return [];
+      }
     },
   });
-};
-
-export default function ListGifts() {
-  const { data, isLoading } = useQueryGifts();
-
-  if (isLoading) return <div>Loading...</div>;
-
-  console.log(data);
 
   return (
-    <div className="flex bg-gray-100 flex-col items-center p-5 gap-5 w-full">
-      {data?.map((item) => (
-        <CardItem
-          category={item.category}
-          id={item.id}
-          image={item.frontImage}
-          status={item.status}
-          title={item.name}
-          giftedBy={item.giftedBy}
-          key={item.id}
-        />
-      ))}
-    </div>
+    <Suspense fallback={<div>Loading...</div>}>
+      <HydrationBoundary state={dehydrate(queryClient)}>
+        <div className="flex flex-col items-center p-5 gap-5 w-full">
+          <ListGifts />
+        </div>
+      </HydrationBoundary>
+    </Suspense>
   );
 }

@@ -76,7 +76,7 @@ export default function CreateItem() {
     Object.entries(gift).forEach(([key, value]) => {
       formData.append(key, value);
     });
-    fetch("http://localhost:3000/api/presentes", {
+    fetch("/api/presentes", {
       method: "POST",
       body: formData,
     }).then(() => {

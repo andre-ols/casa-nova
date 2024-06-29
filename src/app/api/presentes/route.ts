@@ -1,42 +1,120 @@
 import { firestore, storage } from "@/firebase/config";
 import { GiftItem } from "@/types/GiftItem";
-import { addDoc, collection, getDocs } from "firebase/firestore";
+import {
+  DocumentData,
+  addDoc,
+  collection,
+  doc,
+  endBefore,
+  getCountFromServer,
+  getDoc,
+  getDocs,
+  limit,
+  orderBy,
+  query,
+  startAfter,
+} from "firebase/firestore";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
-  const querySnapshot = await getDocs(collection(firestore, "gifts"));
+  // Pagination
+  const url = new URL(req.url);
+  const pageSize = Number(url.searchParams.get("pageSize")) || 1;
+  const nextPageToken = url.searchParams.get("nextPageToken");
+  const previousPageToken = url.searchParams.get("previousPageToken");
+
+  console.log("pageSize backend:", pageSize);
+  console.log("nextPageToken backend:", nextPageToken);
+
+  // Query order 'Disponível' first and then 'Indisponível'
+  let q = query(
+    collection(firestore, "gifts"),
+    orderBy("status"),
+    limit(pageSize)
+  );
+
+  // Apply pagination using the nextPageToken
+  if (nextPageToken) {
+    const currentDoc = await getDoc(
+      doc(collection(firestore, "gifts"), nextPageToken)
+    );
+
+    if (currentDoc.exists()) {
+      q = query(
+        collection(firestore, "gifts"),
+        orderBy("status"),
+        limit(pageSize),
+        startAfter(currentDoc)
+      );
+    }
+  }
+
+  if (previousPageToken) {
+    const current = await getDoc(
+      doc(collection(firestore, "gifts"), previousPageToken)
+    );
+
+    if (current.exists()) {
+      q = query(
+        collection(firestore, "gifts"),
+        orderBy("status"),
+        limit(pageSize),
+        endBefore(current)
+      );
+    }
+  }
+
+  const querySnapshot = await getDocs(q);
+
+  const lastDoc = querySnapshot.docs[querySnapshot.docs.length - 1];
+  const lastDocId = lastDoc ? lastDoc.id : null;
+  const firstDoc = querySnapshot.docs[0];
+  const firstDocId = firstDoc ? firstDoc.id : null;
+
+  const [totalAfter, totalBefore] = await Promise.all([
+    getCountFromServer(
+      query(
+        collection(firestore, "gifts"),
+        orderBy("status"),
+        startAfter(lastDocId)
+      )
+    ),
+    getCountFromServer(
+      query(
+        collection(firestore, "gifts"),
+        orderBy("status"),
+        endBefore(firstDocId)
+      )
+    ),
+  ]);
+
+  const totalAfterCount = totalAfter.data().count;
+  const totalBeforeCount = totalBefore.data().count;
+
+  if (querySnapshot.empty) {
+    return new Response("No documents found", { status: 404 });
+  }
 
   const items: GiftItem[] = [];
 
-  querySnapshot.forEach((doc) => {
+  querySnapshot.forEach((doc: DocumentData) => {
     items.push({
       id: doc.id,
       ...doc.data(),
     } as GiftItem);
   });
 
-  await Promise.all(
-    items.map(async (item) => {
-      const frontImageRef = ref(storage, item.frontImage);
-      const frontImageUrl = await getDownloadURL(frontImageRef);
+  console.log("items:", items);
 
-      item.frontImage = frontImageUrl;
+  console.log("nextPageToken:", nextPageToken);
 
-      const imagesRef = item.images.map((image) => ref(storage, image));
-
-      const imagesUrl = await Promise.all(
-        imagesRef.map((imageRef) => getDownloadURL(imageRef))
-      );
-
-      item.images = imagesUrl;
-    })
-  );
-
-  console.log(items);
-
-  return NextResponse.json(items);
+  return NextResponse.json({
+    items,
+    nextPageToken: totalAfterCount > 0 ? lastDocId : null,
+    previousPageToken: totalBeforeCount > 0 ? firstDocId : null,
+  });
 }
 
 export async function POST(req: NextRequest) {
@@ -54,6 +132,8 @@ export async function POST(req: NextRequest) {
 
   await uploadBytes(frontImageStorageRef, frontImage);
 
+  const frontImageUrl = await getDownloadURL(frontImageStorageRef);
+
   const images = data.getAll("images") as File[];
 
   const imagesPath = images.map((image) => {
@@ -69,17 +149,16 @@ export async function POST(req: NextRequest) {
     })
   );
 
-  // // getDownloadURL
-  // const frontImageUrl = await getDownloadURL(frontImageStorageRef);
-
-  // console.log(frontImageUrl);
+  const imagesUrl = await Promise.all(
+    imagesStorageRef.map((storageRef) => getDownloadURL(storageRef))
+  );
 
   const gift: Omit<GiftItem, "id"> = {
     category: data.get("category") as GiftItem["category"],
     description: data.get("description") as string,
-    frontImage: frontImagePath,
+    frontImage: frontImageUrl,
     giftedBy: [],
-    images: imagesPath,
+    images: imagesUrl,
     name: data.get("name") as string,
     personForGift: 1,
     status: "Disponível",
