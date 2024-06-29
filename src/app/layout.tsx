@@ -1,3 +1,4 @@
+import { Toaster } from "@/components/ui/toaster";
 import type { Metadata } from "next";
 import { Roboto } from "next/font/google";
 import { Header } from "../components/Header";
@@ -23,6 +24,7 @@ export default function RootLayout({
 
           <main className="flex justify-center w-full">{children}</main>
         </div>
+        <Toaster />
       </body>
     </html>
   );

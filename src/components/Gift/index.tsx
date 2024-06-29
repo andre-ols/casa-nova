@@ -10,6 +10,7 @@ import {
   useDisclosure,
 } from "@nextui-org/react";
 import { FC, useState } from "react";
+import { useToast } from "../ui/use-toast";
 
 export const Gift: FC<{
   id: string;
@@ -17,6 +18,8 @@ export const Gift: FC<{
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
   const [isLoading, setIsLoading] = useState(false);
+
+  const { toast } = useToast();
 
   const sendGift = async () => {
     // send gift
@@ -37,12 +40,25 @@ export const Gift: FC<{
       });
 
       if (response.ok) {
-        console.log("Gift sent");
+        toast({
+          title: `Muito obrigado, ${giftedBy.value}!`,
+          description: "O presente foi marcado com seu nome.",
+          className: "bg-success-500",
+        });
       } else {
-        console.error("Failed to send gift");
+        toast({
+          title: "Erro ao selecionar presente",
+          description: "Por favor, tente novamente mais tarde.",
+          className: "bg-yellow-500",
+        });
       }
     } catch (error) {
       console.error("Failed to send gift", error);
+      toast({
+        title: "Erro ao selecionar presente",
+        description: "Por favor, tente novamente mais tarde.",
+        className: "bg-yellow-500",
+      });
     }
 
     setIsLoading(false);
