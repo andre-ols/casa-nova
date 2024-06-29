@@ -1,20 +1,23 @@
+"use client";
 import { Badge } from "@/components/Badge";
 import { Carousel } from "@/components/Carrossel";
 import { Gift } from "@/components/Gift";
+import { useQuery } from "@tanstack/react-query";
 
-export default async function GiftItem({ params }: { params: { id: string } }) {
-  const response = await fetch(
-    `http://localhost:3000/api/presentes/${params.id}`,
-    {
-      next: {
-        revalidate: 1,
-      },
-    }
-  );
-  const result = await response.json();
-  console.log(result);
+const useQueryGift = (id: string) => {
+  return useQuery({
+    queryKey: ["gifts", id],
+    queryFn: async () => {
+      const response = await fetch(`http://localhost:3000/api/presentes/${id}`);
+      const data = await response.json();
+      return data;
+    },
+  });
+};
 
-  const data = result;
+export default function GiftItem({ params }: { params: { id: string } }) {
+  const { data, isLoading } = useQueryGift(params.id);
+  if (isLoading) return <div>Loading...</div>;
   return (
     <div className="h-full flex justify-center items-center overflow-auto">
       <div

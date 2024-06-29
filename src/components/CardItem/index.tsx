@@ -10,7 +10,7 @@ export const CardItem: FC<{
   image: string;
   status: "Disponível" | "Indisponível";
   giftedBy?: string[];
-}> = async ({ title, image, giftedBy, status, id }) => {
+}> = ({ title, image, giftedBy, status, id }) => {
   return (
     <Link
       href={`/presentes/${id}`}
@@ -22,6 +22,7 @@ export const CardItem: FC<{
         alt={title}
         width={200}
         height={200}
+        priority
       />
       <div className="flex flex-col justify-between items-start">
         <h3 className="text-2xl font-semibold border-none">{title}</h3>
