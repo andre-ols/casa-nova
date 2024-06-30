@@ -6,7 +6,7 @@ import "../firebase/config";
 
 const Home: FC = () => {
   return (
-    <main className="container mx-auto px-6 py-12 flex flex-col gap-3">
+    <main className="container max-w-[400px] mx-auto px-6 py-12 flex flex-col gap-3">
       <section className="text-center">
         <h2 className="text-3xl font-bold text-gray-600">
           Chá de Casa Nova <br />
