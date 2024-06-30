@@ -19,6 +19,7 @@ const Home: FC = () => {
         alt="Imagem de Salvador"
         width={600}
         height={400}
+        priority
         className="rounded-lg shadow-md"
       />
       <section className="text-center">

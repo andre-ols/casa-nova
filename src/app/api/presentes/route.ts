@@ -3,14 +3,9 @@ import { GiftItem } from "@/types/GiftItem";
 import {
   addDoc,
   collection,
-  doc,
-  endBefore,
-  getDoc,
   getDocs,
-  limit,
   orderBy,
   query,
-  startAfter,
 } from "firebase/firestore";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 
@@ -18,41 +13,8 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
   const url = new URL(req.url);
-  const pageSize = Number(url.searchParams.get("pageSize")) || 10;
-  const nextPageToken = url.searchParams.get("nextPageToken");
-  const previousPageToken = url.searchParams.get("previousPageToken");
 
-  let q = query(
-    collection(firestore, "gifts"),
-    orderBy("status"),
-    limit(pageSize)
-  );
-
-  if (nextPageToken) {
-    const currentDoc = await getDoc(doc(firestore, "gifts", nextPageToken));
-
-    if (currentDoc.exists()) {
-      q = query(
-        collection(firestore, "gifts"),
-        orderBy("status"),
-        startAfter(currentDoc),
-        limit(pageSize)
-      );
-    }
-  }
-
-  if (previousPageToken) {
-    const currentDoc = await getDoc(doc(firestore, "gifts", previousPageToken));
-
-    if (currentDoc.exists()) {
-      q = query(
-        collection(firestore, "gifts"),
-        orderBy("status"),
-        endBefore(currentDoc),
-        limit(pageSize)
-      );
-    }
-  }
+  let q = query(collection(firestore, "gifts"), orderBy("status"));
 
   const querySnapshot = await getDocs(q);
 
@@ -65,18 +27,8 @@ export async function GET(req: NextRequest) {
     ...doc.data(),
   }));
 
-  const lastDoc = querySnapshot.docs[querySnapshot.docs.length - 1];
-  const firstDoc = querySnapshot.docs[0];
-  const nextPageTokenResult = lastDoc ? lastDoc.id : null;
-  const previousPageTokenResult = firstDoc ? firstDoc.id : null;
-
-  console.log("nextPageTokenResult", nextPageTokenResult);
-  console.log("previousPageTokenResult", previousPageTokenResult);
-
   return NextResponse.json({
     items,
-    nextPageToken: nextPageTokenResult,
-    previousPageToken: previousPageTokenResult,
   });
 }
 

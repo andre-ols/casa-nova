@@ -182,6 +182,7 @@ export default function CreateItem() {
             src={frontImagePreview as any}
             width={96}
             height={96}
+            priority
             alt="Front Image Preview"
             className="mt-2 w-24 h-24 object-contain"
           />
@@ -203,6 +204,7 @@ export default function CreateItem() {
               src={image as any}
               width={96}
               height={96}
+              priority
               alt={`Image ${index + 1}`}
               className="object-contain"
             />
