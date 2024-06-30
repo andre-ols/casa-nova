@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { FC } from "react";
 import { Badge } from "../Badge";
+import { Skeleton } from "../ui/skeleton";
 
 export const CardItem: FC<{
   id: string;
@@ -45,5 +46,21 @@ export const CardItem: FC<{
         )}
       </div>
     </Link>
+  );
+};
+
+export const CardItemLoading: FC = () => {
+  return (
+    <div className="rounded-2xl px-5 py-4 max-w-[400px] w-full bg-zinc-200 text-black flex items-center gap-4 shadow-md">
+      <Skeleton className="w-1/2 h-28 rounded-lg" />
+
+      <div className="flex w-1/2 flex-col justify-between items-start h-full">
+        <Skeleton className="w-full h-4" />
+
+        <Skeleton className="w-1/2 h-4" />
+
+        <Skeleton className="w-full h-4" />
+      </div>
+    </div>
   );
 };

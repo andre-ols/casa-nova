@@ -1,5 +1,5 @@
 "use client";
-import { CardItem } from "@/components/CardItem";
+import { CardItem, CardItemLoading } from "@/components/CardItem";
 import {
   Pagination,
   PaginationContent,
@@ -25,7 +25,11 @@ const useQueryGifts = (nextPageToken: string, previousPageToken: string) => {
         `/api/presentes?nextPageToken=${nextPageToken}&previousPageToken=${previousPageToken}`
       );
       const data = await response.json();
-      return data;
+      return data as {
+        items: GiftItem[];
+        nextPageToken: string;
+        previousPageToken: string;
+      };
     },
   });
 };
@@ -34,7 +38,7 @@ export function ListGifts() {
   const previousPageToken = useSearchParams().get("previousPageToken") || "";
   const nextPageToken = useSearchParams().get("nextPageToken") || "";
 
-  const { data } = useQueryGifts(nextPageToken, previousPageToken);
+  const { data, isLoading } = useQueryGifts(nextPageToken, previousPageToken);
 
   const nextPage = () => {
     return `/presentes?nextPageToken=${data?.nextPageToken}`;
@@ -57,13 +61,15 @@ export function ListGifts() {
         />
       ))}
 
+      {isLoading && <CardItemLoading />}
+
       <Pagination>
         <PaginationContent>
           <PaginationItem>
             <PaginationPrevious
               className={`
                 ${
-                  data.previousPageToken
+                  data?.previousPageToken
                     ? "bg-zinc-200"
                     : "bg-zinc-100 pointer-events-none"
                 }
@@ -75,7 +81,7 @@ export function ListGifts() {
             <PaginationNext
               className={`
                 ${
-                  data.nextPageToken
+                  data?.nextPageToken
                     ? "bg-zinc-200"
                     : "bg-zinc-100 pointer-events-none"
                 }

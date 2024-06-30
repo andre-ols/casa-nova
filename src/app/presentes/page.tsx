@@ -6,42 +6,8 @@ import {
 import { Suspense } from "react";
 import { ListGifts } from "./ListGifts";
 
-export default async function ListGiftsPage({
-  searchParams,
-}: {
-  searchParams: {
-    previousPageToken: string;
-    nextPageToken: string;
-  };
-}) {
-  const previousPageToken = searchParams.previousPageToken || "";
-  const nextPageToken = searchParams.nextPageToken || "";
-
+export default async function ListGiftsPage() {
   const queryClient = new QueryClient();
-
-  console.log(process.env["BACKEND_URL"]);
-
-  await queryClient.prefetchQuery({
-    queryKey: [
-      "gifts",
-      {
-        nextPageToken: nextPageToken ? nextPageToken : undefined,
-        previousPageToken: previousPageToken ? previousPageToken : undefined,
-      },
-    ],
-    queryFn: async () => {
-      try {
-        const response = await fetch(
-          `${process.env["BACKEND_URL"]}/api/presentes?nextPageToken=${nextPageToken}&previousPageToken=${previousPageToken}`
-        );
-        const data = await response.json();
-        return data;
-      } catch (error) {
-        console.log("error:", error);
-        return [];
-      }
-    },
-  });
 
   return (
     <Suspense fallback={<div>Loading...</div>}>

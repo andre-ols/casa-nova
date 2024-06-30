@@ -27,6 +27,7 @@ export async function GET(req: NextRequest) {
 
   console.log("pageSize backend:", pageSize);
   console.log("nextPageToken backend:", nextPageToken);
+  console.log("previousPageToken backend:", previousPageToken);
 
   // Query order 'Disponível' first and then 'Indisponível'
   let q = query(
