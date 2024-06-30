@@ -19,6 +19,18 @@ export async function GET(
   return NextResponse.json(item);
 }
 
+export async function PUT(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const { id } = params;
+  const data = await req.json();
+
+  await updateDoc(doc(collection(firestore, "gifts"), id), data);
+
+  return NextResponse.json({ message: "Gift updated" });
+}
+
 // send gift
 
 export async function POST(req: NextRequest) {
