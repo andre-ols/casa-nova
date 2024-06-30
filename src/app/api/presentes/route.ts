@@ -1,12 +1,10 @@
 import { firestore, storage } from "@/firebase/config";
 import { GiftItem } from "@/types/GiftItem";
 import {
-  DocumentData,
   addDoc,
   collection,
   doc,
   endBefore,
-  getCountFromServer,
   getDoc,
   getDocs,
   limit,
@@ -19,102 +17,66 @@ import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
-  // Pagination
   const url = new URL(req.url);
   const pageSize = Number(url.searchParams.get("pageSize")) || 10;
   const nextPageToken = url.searchParams.get("nextPageToken");
   const previousPageToken = url.searchParams.get("previousPageToken");
 
-  console.log("pageSize backend:", pageSize);
-  console.log("nextPageToken backend:", nextPageToken);
-  console.log("previousPageToken backend:", previousPageToken);
-
-  // Query order 'Disponível' first and then 'Indisponível'
   let q = query(
     collection(firestore, "gifts"),
     orderBy("status"),
     limit(pageSize)
   );
 
-  // Apply pagination using the nextPageToken
   if (nextPageToken) {
-    const currentDoc = await getDoc(
-      doc(collection(firestore, "gifts"), nextPageToken)
-    );
+    const currentDoc = await getDoc(doc(firestore, "gifts", nextPageToken));
 
     if (currentDoc.exists()) {
       q = query(
         collection(firestore, "gifts"),
         orderBy("status"),
-        limit(pageSize),
-        startAfter(currentDoc)
+        startAfter(currentDoc),
+        limit(pageSize)
       );
     }
   }
 
   if (previousPageToken) {
-    const current = await getDoc(
-      doc(collection(firestore, "gifts"), previousPageToken)
-    );
+    const currentDoc = await getDoc(doc(firestore, "gifts", previousPageToken));
 
-    if (current.exists()) {
+    if (currentDoc.exists()) {
       q = query(
         collection(firestore, "gifts"),
         orderBy("status"),
-        limit(pageSize),
-        endBefore(current)
+        endBefore(currentDoc),
+        limit(pageSize)
       );
     }
   }
 
   const querySnapshot = await getDocs(q);
 
-  const lastDoc = querySnapshot.docs[querySnapshot.docs.length - 1];
-  const lastDocId = lastDoc ? lastDoc.id : null;
-  const firstDoc = querySnapshot.docs[0];
-  const firstDocId = firstDoc ? firstDoc.id : null;
-
-  const [totalAfter, totalBefore] = await Promise.all([
-    getCountFromServer(
-      query(
-        collection(firestore, "gifts"),
-        orderBy("status"),
-        startAfter(lastDocId)
-      )
-    ),
-    getCountFromServer(
-      query(
-        collection(firestore, "gifts"),
-        orderBy("status"),
-        endBefore(firstDocId)
-      )
-    ),
-  ]);
-
-  const totalAfterCount = totalAfter.data().count;
-  const totalBeforeCount = totalBefore.data().count;
-
   if (querySnapshot.empty) {
     return new Response("No documents found", { status: 404 });
   }
 
-  const items: GiftItem[] = [];
+  const items = querySnapshot.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+  }));
 
-  querySnapshot.forEach((doc: DocumentData) => {
-    items.push({
-      id: doc.id,
-      ...doc.data(),
-    } as GiftItem);
-  });
+  const lastDoc = querySnapshot.docs[querySnapshot.docs.length - 1];
+  const firstDoc = querySnapshot.docs[0];
+  const nextPageTokenResult = lastDoc ? lastDoc.id : null;
+  const previousPageTokenResult = firstDoc ? firstDoc.id : null;
 
-  console.log("items:", items);
-
-  console.log("nextPageToken:", nextPageToken);
+  console.log("nextPageTokenResult", nextPageTokenResult);
+  console.log("previousPageTokenResult", previousPageTokenResult);
 
   return NextResponse.json({
     items,
-    nextPageToken: totalAfterCount > 0 ? lastDocId : null,
-    previousPageToken: totalBeforeCount > 0 ? firstDocId : null,
+    nextPageToken: nextPageTokenResult,
+    previousPageToken: previousPageTokenResult,
   });
 }
 
