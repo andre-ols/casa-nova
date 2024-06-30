@@ -19,6 +19,7 @@ export default function CreateItem() {
     register,
     handleSubmit,
     formState: { errors },
+    reset,
   } = useForm<{
     name: string;
     description: string;
@@ -80,8 +81,15 @@ export default function CreateItem() {
       method: "POST",
       body: formData,
     }).then(() => {
+      resetForm();
       setIsLoading(false);
     });
+  };
+
+  const resetForm = () => {
+    setFrontImagePreview(null);
+    setImagesPreview([]);
+    reset();
   };
 
   // Generate previews when images are selected

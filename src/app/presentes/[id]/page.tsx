@@ -69,7 +69,7 @@ export default function GiftItem({ params }: { params: { id: string } }) {
             </div>
           )}
           <div className="bg-zinc-300 rounded-xl p-5 w-full shadow-sm">
-            <p className="text-black text-sm font-bold text-justify">
+            <p className="text-black text-sm font-bold text-justify whitespace-pre-line">
               {data.description}
             </p>
           </div>
