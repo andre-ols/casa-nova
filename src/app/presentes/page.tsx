@@ -1,3 +1,4 @@
+import { CardItemLoading } from "@/components/CardItem";
 import {
   HydrationBoundary,
   QueryClient,
@@ -10,7 +11,7 @@ export default async function ListGiftsPage() {
   const queryClient = new QueryClient();
 
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<CardItemLoading />}>
       <HydrationBoundary state={dehydrate(queryClient)}>
         <div className="flex flex-col items-center p-5 gap-5 w-full">
           <ListGifts />

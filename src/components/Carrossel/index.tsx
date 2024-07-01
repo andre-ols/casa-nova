@@ -27,14 +27,18 @@ export const Carousel: FC<CarouselProps> = ({ images }) => {
         width: "-webkit-fill-available",
       }}
     >
-      <Image
-        src={images[currentIndex]}
-        alt={`Slide ${currentIndex + 1}`}
-        width={500}
-        height={500}
-        priority
-        className={"absolute top-0 left-0 w-full h-full object-contain"}
-      />
+      {images.map((image, index) => (
+        <Image
+          key={index}
+          src={image}
+          alt={`Slide ${currentIndex + 1}`}
+          width={500}
+          height={500}
+          className={`absolute top-0 left-0 w-full h-full object-contain 
+            ${index === currentIndex ? "opacity-100" : "opacity-0"}
+             transition-opacity duration-500 ease-in-out`}
+        />
+      ))}
 
       <button
         onClick={goToPrev}
